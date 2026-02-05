@@ -43,6 +43,9 @@ async function bootstrap() {
       }),
     );
 
+    // Global prefix
+    app.setGlobalPrefix('api');
+
     // CORS配置
     app.enableCors({
       origin: process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
