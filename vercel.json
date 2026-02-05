@@ -19,12 +19,5 @@
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
-  ],
-  "env": {
-    "JWT_SECRET": "@jwt-secret",
-    "JWT_EXPIRATION": "@jwt-expiration",
-    "DEEPSEEK_API_KEY": "@deepseek-api-key",
-    "DEEPSEEK_API_URL": "@deepseek-api-url",
-    "DATABASE_URL": "@database-url"
-  }
+  ]
 }
