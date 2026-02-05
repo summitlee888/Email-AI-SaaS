@@ -1,0 +1,52 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  subscription Subscription?
+  emailTasks   EmailTask[]
+  
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  plan      String   // "monthly", "yearly"
+  status    String   // "active", "pending", "canceled", "expired"
+  startDate DateTime @default(now())
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([endDate])
+}
+
+model EmailTask {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // "generation", "analysis"
+  content   String   // User input prompt or email content
+  result    String?  // AI output
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
