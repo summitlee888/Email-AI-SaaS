@@ -7,7 +7,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { logger } from './common/utils/logger';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+import express from 'express';
 
 // 缓存 Server 实例，避免 Serverless 冷启动时重复创建
 let cachedServer: any;
