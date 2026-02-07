@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || (process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000/api");
 
 interface Subscription {
   plan: string | null;
