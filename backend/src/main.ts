@@ -72,6 +72,22 @@ import { join } from 'path';
 export default async function handler(req: any, res: any) {
   try {
     if (!cachedServer) {
+      // DEBUG: Log file system state to debug Vercel bundling issues
+      try {
+        console.log('Current working directory:', process.cwd());
+        const fs = require('fs');
+        console.log('Files in cwd:', fs.readdirSync(process.cwd()));
+        console.log('Files in __dirname:', fs.readdirSync(__dirname));
+        const prismaPath = join(__dirname, '../prisma');
+        if (fs.existsSync(prismaPath)) {
+             console.log('Files in ../prisma:', fs.readdirSync(prismaPath));
+        } else {
+             console.log('../prisma directory not found');
+        }
+      } catch (e) {
+        console.error('Error logging file system:', e);
+      }
+
       // 显式引用 schema.prisma，确保 Vercel 打包时包含它
       // 虽然这行代码看起来没用，但它能告诉 NFT (Node File Trace) 必须打包这个文件
       try {
