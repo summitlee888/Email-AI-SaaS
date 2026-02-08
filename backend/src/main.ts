@@ -64,14 +64,26 @@ async function createNestServer(expressInstance: express.Express) {
 
 // --- Vercel Serverless Handler ---
 export default async function handler(req: any, res: any) {
-  if (!cachedServer) {
-    const server = express();
-    const app = await createNestServer(server);
-    await app.init();
-    cachedServer = server;
+  try {
+    if (!cachedServer) {
+      const server = express();
+      const app = await createNestServer(server);
+      await app.init();
+      cachedServer = server;
+    }
+    // 将请求交给 Express 实例处理
+    return cachedServer(req, res);
+  } catch (error: any) {
+    console.error('Bootstrap Error:', error);
+    // 返回 JSON 格式的错误信息，方便在前端或浏览器中查看
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({
+      message: 'Server Bootstrap Failed',
+      error: error.message || 'Unknown error',
+      stack: error.stack,
+    }));
   }
-  // 将请求交给 Express 实例处理
-  return cachedServer(req, res);
 }
 
 // --- 本地开发启动逻辑 ---
