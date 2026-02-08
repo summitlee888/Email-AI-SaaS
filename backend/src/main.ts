@@ -66,10 +66,20 @@ async function createNestServer(expressInstance: express.Express) {
   return app;
 }
 
+import { join } from 'path';
+
 // --- Vercel Serverless Handler ---
 export default async function handler(req: any, res: any) {
   try {
     if (!cachedServer) {
+      // 显式引用 schema.prisma，确保 Vercel 打包时包含它
+      // 虽然这行代码看起来没用，但它能告诉 NFT (Node File Trace) 必须打包这个文件
+      try {
+        require('fs').readFileSync(join(__dirname, '../prisma/schema.prisma'));
+      } catch (e) {
+        // 忽略读取错误，只为了打包副作用
+      }
+
       const server = express();
       const app = await createNestServer(server);
       await app.init();
