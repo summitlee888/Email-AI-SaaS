@@ -1,4 +1,5 @@
-// import 'dotenv/config'; // Don't load globally to avoid production crash if file missing
+import 'reflect-metadata'; // Must be at the very top
+import 'dotenv/config'; // Don't load globally to avoid production crash if file missing
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -72,28 +73,44 @@ import { join } from 'path';
 export default async function handler(req: any, res: any) {
   try {
     if (!cachedServer) {
+      // DEBUG: Log Environment Variables (Safe)
+      console.log('Environment Check:');
+      console.log('NODE_ENV:', process.env.NODE_ENV);
+      console.log('DATABASE_URL defined:', !!process.env.DATABASE_URL);
+      console.log('JWT_SECRET defined:', !!process.env.JWT_SECRET);
+      
+      if (!process.env.DATABASE_URL) {
+        throw new Error('DATABASE_URL environment variable is missing!');
+      }
+
       // DEBUG: Log file system state to debug Vercel bundling issues
       try {
         console.log('Current working directory:', process.cwd());
         const fs = require('fs');
         console.log('Files in cwd:', fs.readdirSync(process.cwd()));
-        console.log('Files in __dirname:', fs.readdirSync(__dirname));
-        const prismaPath = join(__dirname, '../prisma');
-        if (fs.existsSync(prismaPath)) {
-             console.log('Files in ../prisma:', fs.readdirSync(prismaPath));
-        } else {
-             console.log('../prisma directory not found');
-        }
+        
+        // Try to locate prisma schema in common locations
+        const potentialPaths = [
+          join(__dirname, '../prisma/schema.prisma'),
+          join(__dirname, '../../prisma/schema.prisma'),
+          join(process.cwd(), 'prisma/schema.prisma'),
+          join(process.cwd(), 'backend/prisma/schema.prisma'),
+        ];
+        
+        console.log('Checking for schema.prisma in:');
+        potentialPaths.forEach(p => {
+            const exists = fs.existsSync(p);
+            console.log(`- ${p}: ${exists ? 'FOUND' : 'NOT FOUND'}`);
+            if (exists) {
+                // Read it to force bundling (and verify access)
+                fs.readFileSync(p);
+                // Also set an env var if needed by Prisma (sometimes helps)
+                // process.env.PRISMA_SCHEMA_PATH = p; 
+            }
+        });
+        
       } catch (e) {
         console.error('Error logging file system:', e);
-      }
-
-      // 显式引用 schema.prisma，确保 Vercel 打包时包含它
-      // 虽然这行代码看起来没用，但它能告诉 NFT (Node File Trace) 必须打包这个文件
-      try {
-        require('fs').readFileSync(join(__dirname, '../prisma/schema.prisma'));
-      } catch (e) {
-        // 忽略读取错误，只为了打包副作用
       }
 
       const server = express();
